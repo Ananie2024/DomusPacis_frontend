@@ -4,10 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = { title: 'Wedding Gardens' };
 
 const GARDENS = [
-  { id: 'rose', name: 'Rose Garden', guests: 150, price: 400000, desc: 'An intimate garden adorned with roses and hedgerows — perfect for elegant, smaller ceremonies.' },
-  { id: 'main', name: 'Main Wedding Garden', guests: 350, price: 750000, desc: 'Our flagship outdoor venue with manicured lawns, water features, and a dedicated bridal suite.' },
-  { id: 'chapel', name: 'Chapel Garden', guests: 100, price: 350000, desc: 'Adjacent to the chapel, ideal for Catholic wedding ceremonies with a sacred, peaceful ambiance.' },
-];
+  { id: 'rose', name: 'Rose Garden', guests: 150, price: 'TBA', desc: 'An intimate garden adorned with roses and hedgerows — perfect for elegant, smaller ceremonies.' },
+  { id: 'main', name: 'Main Wedding Garden', guests: 350, price: 'TBA', desc: 'Our flagship outdoor venue with manicured lawns, water features, and a dedicated bridal suite.' },
+  ];
 
 export default function WeddingsPage() {
   return (

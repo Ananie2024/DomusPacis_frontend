@@ -3,7 +3,6 @@ import Cookies from 'js-cookie';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api') + '/v1';
 
-// Create the main axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -13,10 +12,9 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor — attach JWT token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = Cookies.get('access_token') || 
+    const token = Cookies.get('access_token') ||
                   (typeof window !== 'undefined' ? localStorage.getItem('access_token') : null);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -26,7 +24,6 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — handle token refresh & errors
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
@@ -39,7 +36,6 @@ apiClient.interceptors.response.use(
                              (typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null);
 
         if (!refreshToken) {
-          // No refresh token — redirect to login
           if (typeof window !== 'undefined') {
             Cookies.remove('access_token');
             localStorage.removeItem('access_token');
@@ -51,7 +47,7 @@ apiClient.interceptors.response.use(
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
         const newToken = data.data?.accessToken || data.accessToken;
 
-        Cookies.set('access_token', newToken, { expires: 1, secure: true, sameSite: 'strict' });
+        Cookies.set('access_token', newToken, { expires: 1, secure: true, sameSite: 'none' });
         if (typeof window !== 'undefined') localStorage.setItem('access_token', newToken);
 
         if (originalRequest.headers) {

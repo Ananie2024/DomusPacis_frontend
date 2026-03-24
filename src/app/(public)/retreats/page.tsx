@@ -4,9 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = { title: 'Retreat Centres' };
 
 const RETREATS = [
-  { id: 'r1', name: 'Bethany House', capacity: 20, nights: 3, price: 35000, desc: 'A small, quiet house for personal and small group retreats, with a meditation garden and private chapel.' },
-  { id: 'r2', name: 'Emmanuel Centre', capacity: 50, nights: 5, price: 30000, desc: 'Our mid-sized retreat facility for parish and diocesan groups, with a dining hall and conference room.' },
-  { id: 'r3', name: 'Pax Retreat House', capacity: 80, nights: 7, price: 28000, desc: 'The largest retreat facility, ideal for religious communities, youth programmes, and extended spiritual exercises.' },
+  { id: 'r3', name: 'Pax Retreat House', capacity: 80, nights: 7, price: 'TBA', desc: 'The largest retreat facility, ideal for religious communities, youth programmes, and extended spiritual exercises.' },
 ];
 
 export default function RetreatsPage() {
