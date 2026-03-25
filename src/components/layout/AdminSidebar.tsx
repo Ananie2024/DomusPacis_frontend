@@ -36,20 +36,17 @@ export function AdminSidebar() {
       )}
     >
       {/* Logo */}
-      <div className={cn(
-        'flex items-center gap-3 px-4 py-5 border-b border-stone-800',
-        !sidebarOpen && 'justify-center px-0',
-      )}>
-        <div className="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-          ✝
-        </div>
-        {sidebarOpen && (
-          <div className="min-w-0">
-            <div className="font-display text-white text-sm font-semibold truncate">Domus Pacis</div>
-            <div className="text-gold-500 text-[9px] uppercase tracking-widest">Admin Portal</div>
-          </div>
-        )}
-      </div>
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/images/domus-pacis-logo.png"
+              alt="Domus Pacis Logo"
+              width={240}
+              height={90}
+              className="h-14 sm:h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+              priority
+            />
+          </Link>
 
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto scrollbar-thin">

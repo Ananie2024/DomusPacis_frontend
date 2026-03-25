@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/lib/validation/schemas';
@@ -8,6 +10,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { UserRole } from '@/lib/types';
 
 export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
@@ -21,8 +24,19 @@ export default function LoginPage() {
 const onSubmit = async (data: LoginFormData) => {
   try {
     const res = await authApi.login(data);
-    setAuth(res.user, res.accessToken, res.refreshToken);
-    toast.success(`Welcome back!`);
+    setAuth(
+      {
+        id:        res.userId,
+        email:     res.email,
+        firstName: res.firstName,
+        lastName:  res.lastName,
+        role:      res.role as UserRole,
+        createdAt: new Date().toISOString(),
+      },
+      res.accessToken,
+      res.refreshToken
+    );
+    toast.success(`Welcome back, ${res.firstName}!`);
     router.push('/dashboard');
   } catch (err) {
     console.error('Login error:', err);
@@ -38,13 +52,19 @@ const onSubmit = async (data: LoginFormData) => {
 
       <div className="relative w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 rounded-full bg-gold-500 flex items-center justify-center text-white font-display font-bold text-2xl mx-auto mb-4 shadow-gold">
-            ✝
-          </div>
-          <h1 className="font-display text-3xl text-white">Domus Pacis</h1>
-          <p className="text-stone-500 text-sm mt-1">Admin Portal</p>
-        </div>
+         <div className="mb-8">
+           <Link href="/" className="flex items-center group">
+             <Image
+               src="/images/domus-pacis-logo.png"
+               alt="Domus Pacis Logo"
+               width={240}
+               height={90}
+               className="h-14 sm:h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+               priority
+             />
+           </Link>
+           <p className="text-stone-500 text-sm mt-2">Admin Portal</p>
+         </div>
 
         <div className="bg-white/[0.06] backdrop-blur-sm border border-white/10 rounded-2xl p-8">
           <h2 className="font-display text-xl text-white mb-6">Sign in to your account</h2>

@@ -4,13 +4,13 @@ import Cookies from 'js-cookie';
 import { UserProfile } from '@/lib/types';
 
 interface AuthState {
-  user:          UserProfile | null;
-  accessToken:   string | null;
-  refreshToken:  string | null;
+  user:            UserProfile | null;
+  accessToken:     string | null;
+  refreshToken:    string | null;
   isAuthenticated: boolean;
 
-  setAuth:   (user: UserProfile, accessToken: string, refreshToken: string) => void;
-  clearAuth: () => void;
+  setAuth:    (user: UserProfile, accessToken: string, refreshToken: string) => void;
+  clearAuth:  () => void;
   updateUser: (user: Partial<UserProfile>) => void;
 }
 
@@ -23,14 +23,22 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       setAuth: (user, accessToken, refreshToken) => {
-        Cookies.set('access_token',  accessToken,  { expires: 1,  secure: true, sameSite: 'strict' });
-        Cookies.set('refresh_token', refreshToken, { expires: 7,  secure: true, sameSite: 'strict' });
+        Cookies.set('access_token',  accessToken,  { expires: 1, secure: true, sameSite: 'none' });
+        Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'none' });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('access_token',  accessToken);
+          localStorage.setItem('refresh_token', refreshToken);
+        }
         set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
 
       clearAuth: () => {
         Cookies.remove('access_token');
         Cookies.remove('refresh_token');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
       },
 
@@ -38,8 +46,13 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({ user: state.user ? { ...state.user, ...partial } : null })),
     }),
     {
-      name:    'domus-pacis-auth',
-      partialize: (s) => ({ user: s.user, accessToken: s.accessToken, refreshToken: s.refreshToken, isAuthenticated: s.isAuthenticated }),
+      name:       'domus-pacis-auth',
+      partialize: (s) => ({
+        user:            s.user,
+        accessToken:     s.accessToken,
+        refreshToken:    s.refreshToken,
+        isAuthenticated: s.isAuthenticated,
+      }),
     }
   )
 );
