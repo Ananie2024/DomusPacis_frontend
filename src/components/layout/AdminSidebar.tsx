@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CalendarDays, Users, UserCog,
@@ -36,17 +37,18 @@ export function AdminSidebar() {
       )}
     >
       {/* Logo */}
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center group">
-            <Image
-              src="/images/domus-pacis-logo.png"
-              alt="Domus Pacis Logo"
-              width={240}
-              height={90}
-              className="h-14 sm:h-16 md:h-20 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03]"
-              priority
-            />
-          </Link>
+      <div className="flex items-center justify-center px-3 py-4 border-b border-stone-800">
+        <Link href="/" className="flex items-center group">
+          <Image
+            src="/images/domus-pacis-logo.png"
+            alt="Domus Pacis Logo"
+            width={240}
+            height={90}
+            className="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+            priority
+          />
+        </Link>
+      </div>  {/* ← this closing div was missing */}
 
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto scrollbar-thin">
