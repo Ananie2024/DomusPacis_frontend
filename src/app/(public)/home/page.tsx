@@ -48,11 +48,12 @@ const SERVICES = [
 ];
 
 // ── Fetch Homepage Data ─────────────────────────────────────
+export const dynamic = 'force-dynamic';
 async function getHomepageData() {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/public/home/homepage-analytics`,
-      { cache: 'no-store' }
+      { next: { revalidate: 60 } }
     );
 
    if (!res.ok) {
