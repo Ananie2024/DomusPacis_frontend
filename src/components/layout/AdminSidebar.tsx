@@ -103,7 +103,7 @@ export function AdminSidebar() {
 
         {/* Log out */}
         <button
-          onClick={clearAuth}
+           onClick={() => { clearAuth(); window.location.href = '/login'; }}
           title="Log Out"
           className={cn(
             'flex items-center gap-2 px-3 py-2.5 rounded-xl text-stone-500',
