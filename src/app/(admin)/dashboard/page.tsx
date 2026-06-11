@@ -242,10 +242,10 @@ export default function DashboardPage() {
             <EmptyChart message="No customer data available." />
           ) : (
             <div className="grid grid-cols-2 gap-4 h-full content-center py-4">
-              <CustomerStat label="Total Customers"     value={customerActivity.totalCustomers}     color="text-blue-600"   bg="bg-blue-50" />
-              <CustomerStat label="New This Period"     value={customerActivity.newCustomers}       color="text-green-600"  bg="bg-green-50" />
-              <CustomerStat label="Returning"           value={customerActivity.returningCustomers} color="text-amber-600"  bg="bg-amber-50" />
-              <CustomerStat label="Loyal Customers"     value={customerActivity.loyalCustomers}     color="text-purple-600" bg="bg-purple-50" />
+              <CustomerStat label="Total Customers"     value={customerActivity.totalCustomers     ?? 0} color="text-blue-600"   bg="bg-blue-50" />
+              <CustomerStat label="New This Period"     value={customerActivity.newCustomers       ?? 0} color="text-green-600"  bg="bg-green-50" />
+              <CustomerStat label="Returning"           value={customerActivity.returningCustomers ?? 0} color="text-amber-600"  bg="bg-amber-50" />
+              <CustomerStat label="Loyal Customers"     value={customerActivity.loyalCustomers     ?? 0} color="text-purple-600" bg="bg-purple-50" />
             </div>
           )}
         </div>
