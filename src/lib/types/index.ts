@@ -99,80 +99,43 @@ export interface UserProfile {
 // ─── Service Assets ───────────────────────────────────────────────────────────
 
 export interface ServiceAsset {
-  id: string;
-  name: string;
-  assetType: AssetType;
-  description: string;
-  capacity: number;
-  pricePerNight?: number;
-  pricePerDay?: number;
-  pricePerHour?: number;
-  amenities: string[];
-  images: string[];
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface Room extends ServiceAsset {
-  bedType: string;
-  floor: number;
-  roomNumber: string;
-  hasBalcony: boolean;
-  hasAirConditioning: boolean;
-  hasFreeWifi: boolean;
-}
-
-export interface ConferenceHall extends ServiceAsset {
-  hasProjector: boolean;
-  hasAudioSystem: boolean;
-  hasVideoConferencing: boolean;
-  layoutOptions: string[];
-}
-
-export interface WeddingGarden extends ServiceAsset {
-  outdoorArea: number;
-  hasParking: boolean;
-  hasCatering: boolean;
-  maxGuests: number;
-}
-
-export interface RetreatCenter extends ServiceAsset {
-  numberOfRooms: number;
-  hasChapel: boolean;
-  hasDiningHall: boolean;
-  minimumNights: number;
+  id:           string;
+  assetType:    AssetType;
+  name:         string;
+  description:  string;
+  capacity:     number;
+  pricePerUnit: number;
+  pricingUnit:  string;
+  isAvailable:  boolean;
 }
 
 // ─── Booking ──────────────────────────────────────────────────────────────────
 
 export interface Booking {
   id: string;
-  bookingReference: string;
-  customer: Customer;
-  serviceAsset: ServiceAsset;
-  checkIn: string;
-  checkOut: string;
+  customerId: string;
+  customerName: string;
+  serviceAssetId: string;
+  serviceAssetName: string;
+  checkInDate: string;
+  checkOutDate: string;
   numberOfGuests: number;
   status: BookingStatus;
+  specialRequests?: string;
   totalAmount: number;
-  payment?: Payment;
-  notes?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateBookingRequest {
   serviceAssetId: string;
-  checkIn: string;
-  checkOut: string;
+  checkInDate: string;
+  checkOutDate: string;
   numberOfGuests: number;
-  notes?: string;
-  customerDetails?: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
+  specialRequests?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
 }
 
 export interface AvailabilityRequest {
@@ -182,34 +145,44 @@ export interface AvailabilityRequest {
 }
 
 export interface AvailabilityResponse {
+  assetId: string;
+  checkIn: string;
+  checkOut: string;
   available: boolean;
-  totalPrice: number;
-  nights: number;
-  pricePerNight: number;
+}
+
+// ─── Address ──────────────────────────────────────────────────────────────────
+
+export interface Address {
+  street?:   string;
+  city?:      string;
+  province?:  string;
+  country?:   string;
+  postalCode?: string;
 }
 
 // ─── Customer ─────────────────────────────────────────────────────────────────
 
 export interface Customer {
   id: string;
-  firstName: string;
-  lastName: string;
+  userId?: string;
+  fullName: string;
   email: string;
   phone: string;
-  address?: string;
+  address?: Address;
   nationality?: string;
   idNumber?: string;
-  totalBookings: number;
-  totalSpent: number;
+  segment?: string;
+  totalBookings?: number;
+  totalSpent?: number;
   createdAt: string;
 }
 
 export interface CreateCustomerRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
-  address?: string;
+  address?: Address;
   nationality?: string;
   idNumber?: string;
 }

@@ -12,29 +12,17 @@ export type BookingStatus =
 
 export interface BookingResponse {
   id:               string;
-  bookingReference: string;
-  customer:         BookingCustomer;
-  asset:            BookingAsset;
-  checkIn:          string;
-  checkOut:         string;
+  customerId:       string;
+  customerName:     string;
+  serviceAssetId:   string;
+  serviceAssetName: string;
+  checkInDate:      string;
+  checkOutDate:     string;
   numberOfGuests:   number;
   status:           BookingStatus;
+  specialRequests?: string;
   totalAmount:      number;
-  notes?:           string;
   createdAt:        string;
-}
-
-export interface BookingCustomer {
-  id:        string;
-  fullName:  string;
-  email:     string;
-  phone:     string;
-}
-
-export interface BookingAsset {
-  id:        string;
-  name:      string;
-  assetType: string;
 }
 
 export interface AvailabilityResponse {
@@ -45,12 +33,15 @@ export interface AvailabilityResponse {
 }
 
 export interface CreateBookingRequest {
-  assetId:        string;
-  checkIn:        string;
-  checkOut:       string;
+  serviceAssetId: string;
+  checkInDate:    string;
+  checkOutDate:   string;
   numberOfGuests: number;
-  notes?:         string;
-  customerId?:    string;
+  specialRequests?: string;
+  firstName:      string;
+  lastName:       string;
+  email:          string;
+  phone:          string;
 }
 
 export interface CancelBookingRequest {

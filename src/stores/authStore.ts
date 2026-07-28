@@ -3,6 +3,14 @@ import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import { UserProfile } from '@/lib/types';
 
+/**
+ * `secure` cookies are only sent over HTTPS.  On localhost (HTTP) the
+ * browser will silently drop them, so we disable the flag in development.
+ */
+const isSecureContext = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const cookieSecure = isSecureContext;
+const cookieSameSite = isSecureContext ? 'none' : 'lax';
+
 interface AuthState {
   user:            UserProfile | null;
   accessToken:     string | null;
@@ -23,8 +31,8 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
 
       setAuth: (user, accessToken, refreshToken) => {
-        Cookies.set('access_token',  accessToken,  { expires: 1, secure: true, sameSite: 'none' });
-        Cookies.set('refresh_token', refreshToken, { expires: 7, secure: true, sameSite: 'none' });
+        Cookies.set('access_token',  accessToken,  { expires: 1, secure: cookieSecure, sameSite: cookieSameSite });
+        Cookies.set('refresh_token', refreshToken, { expires: 7, secure: cookieSecure, sameSite: cookieSameSite });
         if (typeof window !== 'undefined') {
           localStorage.setItem('access_token',  accessToken);
           localStorage.setItem('refresh_token', refreshToken);

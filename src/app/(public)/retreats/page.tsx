@@ -1,13 +1,28 @@
-import type { Metadata } from 'next';
+'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-export const metadata: Metadata = { title: 'Retreat Centres' };
-
-const RETREATS = [
-  { id: 'r3', name: 'Pax Retreat House', capacity: 80, nights: 7, price: 'TBA', desc: 'The largest retreat facility, ideal for religious communities, youth programmes, and extended spiritual exercises.' },
-];
+import { Loader2 } from 'lucide-react';
+import { serviceAssetsApi, ServiceAssetResponse } from '@/lib/api/serviceAssetsApi';
+import { AssetType } from '@/lib/types';
 
 export default function RetreatsPage() {
+  const [retreats, setRetreats] = useState<ServiceAssetResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const page = await serviceAssetsApi.listAll({ page: 0, size: 50 });
+        setRetreats(page.content.filter(a => a.assetType === AssetType.RETREAT_CENTER && a.isAvailable));
+      } catch {
+        setRetreats([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssets();
+  }, []);
+
   return (
     <div className="pt-20">
       <section className="py-20 bg-stone-950 text-center relative">
@@ -22,30 +37,48 @@ export default function RetreatsPage() {
 
       <section className="py-16 bg-ivory-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {RETREATS.map((r) => (
-              <div key={r.id} className="card-hover">
-                <div className="h-48 bg-gradient-to-br from-sky-900 to-stone-900 rounded-xl mb-5 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="text-5xl mb-2">🕊️</div>
-                    <div className="text-gold-300 text-xs uppercase tracking-widest">Up to {r.capacity} retreatants</div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin text-gold-500" size={32} />
+            </div>
+          ) : retreats.length === 0 ? (
+            <div className="text-center py-20 text-stone-500">
+              <p>No retreat centres currently available. Please contact us directly for inquiries.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {retreats.map((r) => (
+                <div key={r.id} className="card-hover">
+                  <div className="h-48 bg-gradient-to-br from-sky-900 to-stone-900 rounded-xl mb-5 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <div className="text-5xl mb-2">🕊️</div>
+                      <div className="text-gold-300 text-xs uppercase tracking-widest">
+                        Up to {r.capacity} retreatants
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <h3 className="font-display text-xl text-stone-900 mb-2">{r.name}</h3>
-                <p className="text-stone-600 text-sm leading-relaxed mb-4">{r.desc}</p>
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <div className="font-display text-lg text-stone-900">{r.price.toLocaleString()} RWF</div>
-                    <div className="text-stone-400 text-xs">per person / night</div>
+                  <h3 className="font-display text-xl text-stone-900 mb-2">{r.name}</h3>
+                  <p className="text-stone-600 text-sm leading-relaxed mb-4">{r.description}</p>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <div className="font-display text-lg text-stone-900">
+                        {r.pricePerUnit.toLocaleString()} RWF
+                      </div>
+                      <div className="text-stone-400 text-xs">
+                        per {r.pricingUnit.toLowerCase().replace('_', ' ')}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-stone-500 text-xs">Min. {r.nights} nights</div>
+                  <Link
+                    href={`/booking?asset=${r.id}&type=RETREAT_CENTER`}
+                    className="btn-primary w-full justify-center"
+                  >
+                    Reserve Now
+                  </Link>
                 </div>
-                <Link href="/booking?type=RETREAT_CENTER" className="btn-primary w-full justify-center">
-                  Reserve Now
-                </Link>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

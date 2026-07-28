@@ -45,7 +45,7 @@ export default function BookingsPage() {
   });
 
   // ── Mutations ──────────────────────────────────────────────────────────────
-  const confirm = useMutation({
+  const confirmBooking = useMutation({
     mutationFn: (id: string) => bookingApi.confirm(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bookings'] }); toast.success('Booking confirmed'); },
     onError:   () => toast.error('Failed to confirm booking'),
@@ -141,14 +141,13 @@ export default function BookingsPage() {
               ) : (
                 data?.content.map((b) => (
                   <tr key={b.id}>
-                    <td className="font-mono text-xs text-stone-600">{b.bookingReference}</td>
+                    <td className="font-mono text-xs text-stone-600">{b.id}</td>
                     <td>
-                      <div className="font-medium text-stone-900">{b.customer.fullName}</div>
-                      <div className="text-xs text-stone-400">{b.customer.email}</div>
+                      <div className="font-medium text-stone-900">{b.customerName}</div>
                     </td>
-                    <td className="text-stone-700">{b.asset.name}</td>
-                    <td>{formatDate(b.checkIn)}</td>
-                    <td>{formatDate(b.checkOut)}</td>
+                    <td className="text-stone-700">{b.serviceAssetName}</td>
+                    <td>{formatDate(b.checkInDate)}</td>
+                    <td>{formatDate(b.checkOutDate)}</td>
                     <td className="font-medium">{formatCurrency(b.totalAmount)}</td>
                     <td><StatusBadge status={b.status} /></td>
                     <td>
@@ -166,7 +165,7 @@ export default function BookingsPage() {
                         {/* Confirm — PENDING only */}
                         {b.status === 'PENDING' && (
                           <button
-                            onClick={() => confirm.mutate(b.id)}
+                            onClick={() => confirmBooking.mutate(b.id)}
                             className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 transition-colors"
                             title="Confirm"
                           >
@@ -200,8 +199,8 @@ export default function BookingsPage() {
                         {(b.status === 'PENDING' || b.status === 'CONFIRMED') && (
                           <button
                             onClick={() => {
-                              setOverrideCheckIn(b.checkIn);
-                              setOverrideCheckOut(b.checkOut);
+                              setOverrideCheckIn(b.checkInDate);
+                              setOverrideCheckOut(b.checkOutDate);
                               setOverrideOpen(b.id);
                             }}
                             className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors"
@@ -214,7 +213,7 @@ export default function BookingsPage() {
                         {/* Cancel — PENDING or CONFIRMED */}
                         {(b.status === 'PENDING' || b.status === 'CONFIRMED') && (
                           <button
-                            onClick={() => { if (confirm(`Cancel booking ${b.bookingReference}?`)) cancel.mutate(b.id); }}
+                            onClick={() => { if (window.confirm(`Cancel booking ${b.id}?`)) cancel.mutate(b.id); }}
                             className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
                             title="Cancel"
                           >
@@ -243,17 +242,14 @@ export default function BookingsPage() {
           <div className="space-y-4 text-sm">
             <div className="grid grid-cols-2 gap-3">
               {([
-                ['Reference', detail.bookingReference],
-                ['Status',    detail.status],
-                ['Guest',     detail.customer.fullName],
-                ['Email',     detail.customer.email],
-                ['Phone',     detail.customer.phone],
-                ['Asset',     detail.asset.name],
-                ['Type',      detail.asset.assetType],
-                ['Check-in',  formatDate(detail.checkIn)],
-                ['Check-out', formatDate(detail.checkOut)],
-                ['Guests',    detail.numberOfGuests],
-                ['Total',     formatCurrency(detail.totalAmount)],
+                ['Reference',     detail.id],
+                ['Status',        detail.status],
+                ['Guest',         detail.customerName],
+                ['Asset',         detail.serviceAssetName],
+                ['Check-in',      formatDate(detail.checkInDate)],
+                ['Check-out',     formatDate(detail.checkOutDate)],
+                ['Guests',        detail.numberOfGuests],
+                ['Total',         formatCurrency(detail.totalAmount)],
               ] as [string, string | number][]).map(([label, value]) => (
                 <div key={label}>
                   <div className="text-stone-400 text-xs">{label}</div>
@@ -265,10 +261,10 @@ export default function BookingsPage() {
                 </div>
               ))}
             </div>
-            {detail.notes && (
+            {detail.specialRequests && (
               <div className="bg-stone-50 rounded-xl p-3">
-                <div className="text-stone-400 text-xs mb-1">Notes</div>
-                <p className="text-stone-700">{detail.notes}</p>
+                <div className="text-stone-400 text-xs mb-1">Special Requests</div>
+                <p className="text-stone-700">{detail.specialRequests}</p>
               </div>
             )}
           </div>

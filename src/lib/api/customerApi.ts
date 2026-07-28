@@ -1,49 +1,49 @@
 import apiClient from './client';
-import { ApiResponse } from '../types';
+import { ApiResponse, Address } from '../types';
 
 // ── Types matching CustomerDtos exactly ───────────────────────────────────────
 
 export interface CustomerResponse {
   id:           string;
-  firstName:    string;
-  lastName:     string;
+  userId?:      string;
+  fullName:     string;
   email:        string;
   phone:        string;
-  address?:     string;
+  address?:     Address;
   nationality?: string;
   idNumber?:    string;
-  totalBookings: number;
-  totalSpent:   number;
-  userId?:      string;
+  segment?:     string;
+  totalBookings?: number;
+  totalSpent?:   number;
   createdAt:    string;
 }
 
 export interface CustomerSummaryResponse {
-  id:        string;
-  firstName: string;
-  lastName:  string;
-  email:     string;
-  phone:     string;
+  id:      string;
+  fullName: string;
+  email:    string;
+  phone:    string;
+  segment?: string;
 }
 
 export interface CreateCustomerRequest {
-  firstName:    string;
-  lastName:     string;
+  fullName:     string;
   email:        string;
   phone:        string;
-  address?:     string;
+  address?:     Address;
   nationality?: string;
   idNumber?:    string;
 }
 
 export interface UpdateCustomerRequest {
-  firstName:    string;
-  lastName:     string;
+  fullName:     string;
   email:        string;
   phone:        string;
-  address?:     string;
+  address?:     Address;
   nationality?: string;
   idNumber?:    string;
+  segment?:     string;
+  notes?:       string;
 }
 
 export interface CustomerPage {
@@ -75,11 +75,19 @@ export const customerApi = {
   },
 
   // GET /api/v1/customers/search?q=&page=&size=
-  search: async (q: string, params?: { page?: number; size?: number }): Promise<CustomerSummaryPage> => {
+  search: async (q: string, params?: { page?: number; size?: number }): Promise<CustomerPage> => {
     const { data } = await apiClient.get<ApiResponse<CustomerSummaryPage>>('/customers/search', {
       params: { q, ...params },
     });
-    return data.data;
+    return {
+      ...data.data,
+      content: data.data.content.map((customer) => ({
+        ...customer,
+        totalBookings: 0,
+        totalSpent: 0,
+        createdAt: new Date().toISOString(),
+      })),
+    };
   },
 
   // GET /api/v1/customers/{id}

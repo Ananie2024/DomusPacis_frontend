@@ -215,7 +215,7 @@ export default function TaxPage() {
               <div className="card text-center py-12">
                 <Receipt size={40} className="text-stone-300 mx-auto mb-3" />
                 <p className="text-stone-500">No tax records for {year}.</p>
-                <p className="text-stone-400 text-sm mt-1">Use "Compute VAT" above to generate records.</p>
+                <p className="text-stone-400 text-sm mt-1">Use &quot;Compute VAT&quot; above to generate records.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

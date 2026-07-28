@@ -1,46 +1,40 @@
-import type { Metadata } from 'next';
+'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Monitor, Mic, Wifi, Users, Coffee, Car } from 'lucide-react';
+import { Monitor, Mic, Wifi, Users, Coffee, Loader2 } from 'lucide-react';
+import { serviceAssetsApi, ServiceAssetResponse } from '@/lib/api/serviceAssetsApi';
+import { AssetType } from '@/lib/types';
 
-export const metadata: Metadata = { title: 'Conference Halls' };
-
-const HALLS = [
-  {
-    id: 'boardroom',
-    name: 'Boardroom',
-    capacity: 20,
-    pricePerDay: 'TBA',
-    pricePerHour: 'TBA',
-    description: 'Intimate boardroom setting ideal for executive meetings, board sessions, and small workshops.',
-    features: ['70" Smart TV', 'Video conferencing', 'Whiteboard', 'Stationery', 'Coffee service'],
-    layout: 'Boardroom',
-    gradient: 'from-stone-700 to-stone-900',
-  },
-  {
-    id: 'seminar',
-    name: 'Seminar Hall',
-    capacity: 80,
-    pricePerDay: 'TBA',
-    pricePerHour: 'TBA',
-    description: 'Versatile hall suitable for seminars, training sessions, and mid-sized conferences with flexible seating.',
-    features: ['Projector & screen', 'PA system', 'Podium', 'Catering service', 'Air conditioning', 'Wi-Fi'],
-    layout: 'Theatre / Classroom',
-    gradient: 'from-burgundy-900 to-stone-900',
-  },
-  {
-    id: 'main-hall',
-    name: 'Main Conference Hall',
-    capacity: 200,
-    pricePerDay: 'TBA',
-    pricePerHour: 'TBA',
-    description: 'Our flagship conference facility for large plenary sessions, AGMs, and multi-track conferences.',
-    features: ['Dual projectors', 'Professional PA', 'Simultaneous translation', 'Stage & podium', 'Full catering', 'Breakout rooms'],
-    layout: 'Theatre / Banquet / Classroom',
-    gradient: 'from-gold-800 to-stone-950',
-  },
-];
+function getRandomGradient() {
+  const gradients = [
+    'from-stone-700 to-stone-900',
+    'from-burgundy-900 to-stone-900',
+    'from-stone-800 to-stone-950',
+    'from-gold-800 to-stone-950',
+    'from-teal-900 to-stone-950',
+    'from-sky-900 to-stone-950',
+  ];
+  return gradients[Math.floor(Math.random() * gradients.length)];
+}
 
 export default function ConferencePage() {
+  const [halls, setHalls] = useState<ServiceAssetResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const page = await serviceAssetsApi.listAll({ page: 0, size: 50 });
+        setHalls(page.content.filter(a => a.assetType === AssetType.CONFERENCE_HALL && a.isAvailable));
+      } catch {
+        setHalls([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssets();
+  }, []);
+
   return (
     <div className="pt-20">
       <section className="py-20 bg-stone-950 text-center relative">
@@ -54,52 +48,81 @@ export default function ConferencePage() {
       </section>
 
       <section className="py-16 bg-ivory-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          {HALLS.map((hall) => (
-            <div key={hall.id} className="card overflow-hidden">
-              <div className="flex flex-col lg:flex-row">
-                <div className={`lg:w-1/3 min-h-52 bg-gradient-to-br ${hall.gradient} flex items-center justify-center p-10`}>
-                  <div className="text-center text-white">
-                    <div className="font-display text-5xl font-bold text-gold-400 mb-2">{hall.capacity}</div>
-                    <div className="text-stone-300 text-sm">delegates</div>
-                    <div className="mt-3 text-xs text-stone-400 uppercase tracking-widest">{hall.layout}</div>
-                  </div>
-                </div>
-                <div className="lg:w-2/3 p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-display text-2xl text-stone-900">{hall.name}</h3>
-                      <div className="flex items-center gap-1.5 text-stone-500 text-sm mt-1">
-                        <Users size={13} /> Up to {hall.capacity} delegates
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-stone-500 text-xs mb-1">From</div>
-                      <div className="font-display text-xl text-stone-900">{(hall.pricePerHour).toLocaleString()} RWF/hr</div>
-                      <div className="text-stone-400 text-xs">{(hall.pricePerDay).toLocaleString()} RWF/day</div>
-                    </div>
-                  </div>
-                  <p className="text-stone-600 text-sm leading-relaxed mb-5">{hall.description}</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
-                    {hall.features.map((f) => (
-                      <div key={f} className="flex items-center gap-2 text-xs text-stone-600 bg-stone-50 rounded-lg px-3 py-2">
-                        {f.includes('Wi-Fi') ? <Wifi size={12} className="text-gold-500" /> :
-                         f.includes('projector') || f.includes('TV') ? <Monitor size={12} className="text-gold-500" /> :
-                         f.includes('PA') || f.includes('Mic') ? <Mic size={12} className="text-gold-500" /> :
-                         f.includes('Coffee') || f.includes('catering') ? <Coffee size={12} className="text-gold-500" /> :
-                         f.includes('parking') ? <Car size={12} className="text-gold-500" /> :
-                         <Users size={12} className="text-gold-500" />}
-                        {f}
-                      </div>
-                    ))}
-                  </div>
-                  <Link href={`/booking?type=CONFERENCE_HALL`} className="btn-primary">
-                    Book This Hall
-                  </Link>
-                </div>
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin text-gold-500" size={32} />
             </div>
-          ))}
+          ) : halls.length === 0 ? (
+            <div className="text-center py-20 text-stone-500">
+              <p>No conference halls currently available. Please contact us directly for inquiries.</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {halls.map((hall) => {
+                const gradient = getRandomGradient();
+                return (
+                  <div key={hall.id} className="card overflow-hidden">
+                    <div className="flex flex-col lg:flex-row">
+                      <div className={`lg:w-1/3 min-h-52 bg-gradient-to-br ${gradient} flex items-center justify-center p-10`}>
+                        <div className="text-center text-white">
+                          <div className="font-display text-5xl font-bold text-gold-400 mb-2">{hall.capacity}</div>
+                          <div className="text-stone-300 text-sm">delegates</div>
+                          <div className="mt-3 text-xs text-stone-400 uppercase tracking-widest">
+                            {hall.pricingUnit.replace('_', ' ')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="lg:w-2/3 p-8">
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className="font-display text-2xl text-stone-900">{hall.name}</h3>
+                            <div className="flex items-center gap-1.5 text-stone-500 text-sm mt-1">
+                              <Users size={13} /> Up to {hall.capacity} delegates
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-display text-xl text-stone-900">
+                              {hall.pricePerUnit.toLocaleString()} RWF
+                            </div>
+                            <div className="text-stone-400 text-xs">
+                              per {hall.pricingUnit.toLowerCase().replace('_', ' ')}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-stone-600 text-sm leading-relaxed mb-5">{hall.description}</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
+                          {[
+                            'Projector & screen',
+                            'PA system',
+                            'Podium',
+                            'Air conditioning',
+                            'Wi-Fi',
+                            'Catering service',
+                          ].map((f) => (
+                            <div key={f} className="flex items-center gap-2 text-xs text-stone-600 bg-stone-50 rounded-lg px-3 py-2">
+                              {f.includes('Wi-Fi') ? <Wifi size={12} className="text-gold-500" /> :
+                               f.includes('Projector') || f.includes('screen') ? <Monitor size={12} className="text-gold-500" /> :
+                               f.includes('PA') || f.includes('Mic') ? <Mic size={12} className="text-gold-500" /> :
+                               f.includes('Catering') || f.includes('Coffee') ? <Coffee size={12} className="text-gold-500" /> :
+                               <Users size={12} className="text-gold-500" />}
+                              {f}
+                            </div>
+                          ))}
+                        </div>
+                        <Link
+                          href={`/booking?asset=${hall.id}&type=CONFERENCE_HALL`}
+                          className="btn-primary"
+                        >
+                          Book This Hall
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     </div>

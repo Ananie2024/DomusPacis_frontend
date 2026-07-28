@@ -1,98 +1,94 @@
 import apiClient from './client';
-import { ApiResponse, PaginatedResponse, UserProfile, UserRole } from '../types';
+import { ApiResponse, PaginatedResponse, UserRole } from '@/lib/types';
 
-export interface AdminUser extends UserProfile {
-  phone?: string;
+export interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
   isActive: boolean;
-  lastLoginAt?: string;
+  phone?: string;
   createdAt: string;
+  lastLoginAt?: string;
 }
 
 export interface CreateUserRequest {
-  firstName:   string;
-  lastName:    string;
-  email:       string;
-  phone?:      string;
-  role:        UserRole;
-  password:    string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  phone?: string;
   sendWelcomeEmail?: boolean;
 }
 
 export interface UpdateUserRequest {
-  firstName?: string;
-  lastName?:  string;
-  email?:     string;
-  phone?:     string;
-  role?:      UserRole;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  phone?: string;
 }
 
-export interface UserFilters {
-  search?:   string;
-  role?:     UserRole | '';
-  isActive?: boolean;
-  page?:     number;
-  size?:     number;
+export interface ResetPasswordResponse {
+  temporaryPassword: string;
 }
 
-const BASE = '/auth/admin/users';
-
-export const usersApi = {
-
-  // GET /api/v1/auth/admin/users?search=&role=&isActive=&page=&size=
-  getUsers: async (filters?: UserFilters): Promise<PaginatedResponse<AdminUser>> => {
-    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<AdminUser>>>(BASE, {
-      params: {
-        search:   filters?.search   || undefined,
-        role:     filters?.role     || undefined,
-        isActive: filters?.isActive ?? undefined,
-        page:     filters?.page     ?? 0,
-        size:     filters?.size     ?? 12,
-      },
-    });
-    return data.data;
-  },
-
-  // POST /api/v1/auth/admin/users
-  createUser: async (payload: CreateUserRequest): Promise<AdminUser> => {
-    const { data } = await apiClient.post<ApiResponse<AdminUser>>(BASE, {
-      email:     payload.email,
-      password:  payload.password,
-      firstName: payload.firstName,
-      lastName:  payload.lastName,
-      role:      payload.role,
-    });
-    return data.data;
-  },
-
-  // PUT /api/v1/auth/admin/users/{userId}
-  updateUser: async (id: string, payload: UpdateUserRequest): Promise<AdminUser> => {
-    const { data } = await apiClient.put<ApiResponse<AdminUser>>(`${BASE}/${id}`, payload);
-    return data.data;
-  },
-
-  // PATCH /api/v1/auth/admin/users/{userId}/role?role=MANAGER
-  assignRole: async (id: string, role: UserRole): Promise<AdminUser> => {
-    const { data } = await apiClient.patch<ApiResponse<AdminUser>>(
-      `${BASE}/${id}/role`, null, { params: { role } }
-    );
-    return data.data;
-  },
-
-  // DELETE /api/v1/auth/admin/users/{userId}  →  sets isActive = false
-  deactivateUser: async (id: string): Promise<void> => {
-    await apiClient.delete(`${BASE}/${id}`);
-  },
-
-  // PATCH /api/v1/auth/admin/users/{userId}/activate
-  activateUser: async (id: string): Promise<void> => {
-    await apiClient.patch(`${BASE}/${id}/activate`);
-  },
-
-  // POST /api/v1/auth/password-reset/initiate?email=...
-  resetPassword: async (_id: string, email: string): Promise<{ temporaryPassword: string }> => {
-    await apiClient.post('/auth/password-reset/initiate', null, { params: { email } });
-    // Backend sends the reset link by email — no temp password returned
-    return { temporaryPassword: '(sent to user email)' };
-  },
+type RawUser = Omit<AdminUser, 'role' | 'createdAt'> & {
+  role: string;
+  createdAt?: string;
 };
 
+function normalizeUser(user: RawUser): AdminUser {
+  return {
+    ...user,
+    role: user.role as UserRole,
+    createdAt: user.createdAt ?? new Date().toISOString(),
+  };
+}
+
+export const usersApi = {
+  getUsers: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    role?: UserRole;
+    isActive?: boolean;
+  }): Promise<PaginatedResponse<AdminUser>> => {
+    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<RawUser>>>('/auth/admin/users', { params });
+    return {
+      ...data.data,
+      content: data.data.content.map(normalizeUser),
+    };
+  },
+
+  createUser: async (request: CreateUserRequest): Promise<AdminUser> => {
+    const { phone: _phone, sendWelcomeEmail: _sendWelcomeEmail, ...payload } = request;
+    const { data } = await apiClient.post<ApiResponse<RawUser>>('/auth/admin/users', payload);
+    return normalizeUser(data.data);
+  },
+
+  updateUser: async (id: string, request: UpdateUserRequest): Promise<AdminUser> => {
+    const { phone: _phone, ...payload } = request;
+    const { data } = await apiClient.put<ApiResponse<RawUser>>(`/auth/admin/users/${id}`, payload);
+    return normalizeUser(data.data);
+  },
+
+  activateUser: async (id: string): Promise<void> => {
+    await apiClient.patch(`/auth/admin/users/${id}/activate`);
+  },
+
+  deactivateUser: async (id: string): Promise<void> => {
+    await apiClient.delete(`/auth/admin/users/${id}`);
+  },
+
+  deleteUser: async (id: string): Promise<void> => {
+    await apiClient.delete(`/auth/admin/users/${id}`);
+  },
+
+  resetPassword: async (id: string, _email?: string): Promise<ResetPasswordResponse> => {
+    const { data } = await apiClient.post<ApiResponse<ResetPasswordResponse>>(`/auth/admin/users/${id}/reset-password`);
+    return data.data;
+  },
+};

@@ -10,18 +10,17 @@ import {
   CreateCustomerRequest,
   UpdateCustomerRequest,
 } from '@/lib/api/customerApi';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { formatCurrency, formatDate, getInitialsFromFullName, formatAddress } from '@/lib/utils';
 import { PageHeader, Pagination, PageLoader, SearchBar, EmptyState, Modal } from '@/components/ui';
 import { Users, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ── Zod schema aligned with CreateCustomerRequest / UpdateCustomerRequest ─────
 const customerSchema = z.object({
-  firstName:    z.string().min(2, 'First name required'),
-  lastName:     z.string().min(2, 'Last name required'),
+  fullName:     z.string().min(2, 'Full name required'),
   email:        z.string().email('Valid email required'),
   phone:        z.string().min(10, 'Valid phone required'),
-  address:      z.string().optional(),
+  address:      z.any().optional(),
   nationality:  z.string().optional(),
   idNumber:     z.string().optional(),
 });
@@ -55,11 +54,10 @@ export default function CustomersPage() {
   const openEdit = (c: CustomerResponse) => {
     setEditTarget(c);
     editForm.reset({
-      firstName:   c.firstName,
-      lastName:    c.lastName,
+      fullName:    c.fullName,
       email:       c.email,
       phone:       c.phone,
-      address:     c.address    ?? '',
+      address:     c.address ?? undefined,
       nationality: c.nationality ?? '',
       idNumber:    c.idNumber   ?? '',
     });
@@ -100,21 +98,12 @@ export default function CustomersPage() {
   // ── Shared form fields renderer ───────────────────────────────────────────
   const renderFields = (form: typeof createForm) => (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="label">First Name</label>
-          <input {...form.register('firstName')} className="input" />
-          {form.formState.errors.firstName && (
-            <p className="form-error">{form.formState.errors.firstName.message}</p>
-          )}
-        </div>
-        <div>
-          <label className="label">Last Name</label>
-          <input {...form.register('lastName')} className="input" />
-          {form.formState.errors.lastName && (
-            <p className="form-error">{form.formState.errors.lastName.message}</p>
-          )}
-        </div>
+      <div>
+        <label className="label">Full Name</label>
+        <input {...form.register('fullName')} className="input" placeholder="Jane Doe" />
+        {form.formState.errors.fullName && (
+          <p className="form-error">{form.formState.errors.fullName.message}</p>
+        )}
       </div>
       <div>
         <label className="label">Email</label>
@@ -125,7 +114,7 @@ export default function CustomersPage() {
       </div>
       <div>
         <label className="label">Phone</label>
-        <input {...form.register('phone')} className="input" placeholder="+250 78 000 0000" />
+        <input type="tel" {...form.register('phone')} className="input" placeholder="+250 78 000 0000" />
         {form.formState.errors.phone && (
           <p className="form-error">{form.formState.errors.phone.message}</p>
         )}
@@ -142,7 +131,7 @@ export default function CustomersPage() {
       </div>
       <div>
         <label className="label">Address</label>
-        <input {...form.register('address')} className="input" />
+        <input {...form.register('address')} className="input" placeholder="Street, City, Country" />
       </div>
     </>
   );
@@ -196,11 +185,11 @@ export default function CustomersPage() {
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                          {getInitials(c.firstName, c.lastName)}
+                          {getInitialsFromFullName(c.fullName)}
                         </div>
                         <div>
                           <div className="font-medium text-stone-900">
-                            {c.firstName} {c.lastName}
+                            {c.fullName}
                           </div>
                           <div className="text-xs text-stone-400">{c.email}</div>
                         </div>
@@ -208,8 +197,8 @@ export default function CustomersPage() {
                     </td>
                     <td className="text-stone-600">{c.phone}</td>
                     <td className="text-stone-600">{c.nationality ?? '—'}</td>
-                    <td className="font-medium">{c.totalBookings}</td>
-                    <td className="font-medium">{formatCurrency(c.totalSpent)}</td>
+                    <td className="font-medium">{c.totalBookings ?? 0}</td>
+                    <td className="font-medium">{formatCurrency(c.totalSpent ?? 0)}</td>
                     <td className="text-stone-500">{formatDate(c.createdAt)}</td>
                     <td>
                       <div className="flex items-center gap-1">
@@ -283,7 +272,7 @@ export default function CustomersPage() {
       <Modal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
-        title={`Edit — ${editTarget?.firstName} ${editTarget?.lastName}`}
+        title={`Edit — ${editTarget?.fullName ?? ''}`}
       >
         <form
           onSubmit={editForm.handleSubmit(d =>
@@ -321,11 +310,11 @@ export default function CustomersPage() {
           <div className="space-y-4 text-sm">
             <div className="flex items-center gap-4 mb-2">
               <div className="w-12 h-12 rounded-full bg-gold-100 text-gold-700 flex items-center justify-center text-base font-bold">
-                {getInitials(viewTarget.firstName, viewTarget.lastName)}
+                {getInitialsFromFullName(viewTarget.fullName)}
               </div>
               <div>
                 <div className="font-display text-lg text-stone-900">
-                  {viewTarget.firstName} {viewTarget.lastName}
+                  {viewTarget.fullName}
                 </div>
                 <div className="text-stone-400 text-xs">{viewTarget.email}</div>
               </div>
@@ -336,9 +325,9 @@ export default function CustomersPage() {
                 ['Phone',        viewTarget.phone],
                 ['Nationality',  viewTarget.nationality ?? '—'],
                 ['ID Number',    viewTarget.idNumber    ?? '—'],
-                ['Address',      viewTarget.address     ?? '—'],
-                ['Bookings',     viewTarget.totalBookings],
-                ['Total Spent',  formatCurrency(viewTarget.totalSpent)],
+                ['Address',      formatAddress(viewTarget.address)],
+                ['Bookings',     viewTarget.totalBookings ?? 0],
+                ['Total Spent',  formatCurrency(viewTarget.totalSpent ?? 0)],
                 ['Member Since', formatDate(viewTarget.createdAt)],
               ] as [string, string | number][]).map(([label, value]) => (
                 <div key={label}>

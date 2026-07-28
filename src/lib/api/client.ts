@@ -1,7 +1,21 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+/**
+ * Use a relative baseURL so that every request is served by the Next.js
+ * rewrite proxy (see next.config.js → async rewrites).  This avoids CORS
+ * "Network Error" issues entirely because the browser never makes a
+ * cross-origin call.
+ */
+const API_BASE_URL = '/api/v1';
+
+/**
+ * `secure` cookies are only sent over HTTPS.  On localhost (HTTP) the
+ * browser will silently drop them, so we disable the flag in development.
+ */
+const isSecureContext = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const cookieSecure = isSecureContext;
+const cookieSameSite = isSecureContext ? 'none' : 'lax';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -47,7 +61,7 @@ apiClient.interceptors.response.use(
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
         const newToken = data.data?.accessToken || data.accessToken;
 
-        Cookies.set('access_token', newToken, { expires: 1, secure: true, sameSite: 'none' });
+        Cookies.set('access_token', newToken, { expires: 1, secure: cookieSecure, sameSite: cookieSameSite });
         if (typeof window !== 'undefined') localStorage.setItem('access_token', newToken);
 
         if (originalRequest.headers) {
